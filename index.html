@@ -76,16 +76,11 @@ input[type=range]{accent-color:var(--gd);padding:0}
   <div class="card" id="mk"></div>
   <div class="card" id="best" style="display:none"></div>
   <div class="card board" id="bd" style="display:none"></div>
-  <div class="card" id="ai" style="display:none"></div>
   <p class="note" id="fn"></p>
 </main>
-<div class="bar" style="display:flex;gap:8px">
-  <button id="copy" style="flex:1">📋 CLV</button>
-  <button id="brain" style="flex:1;background:var(--panel);color:var(--tx);border:1px solid var(--bd)">🧠 AI verdict</button>
-</div>
+<div class="bar"><button id="copy">📋 Copy CLV summary</button></div>
 
 <script>
-const AI_URL=""; // paste your Cloudflare Worker URL here, e.g. https://quant-ai.yourname.workers.dev
 const tg=window.Telegram&&window.Telegram.WebApp;
 if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#0A0B0F');tg.setBackgroundColor('#0A0B0F')}catch(e){}}
 const hap=s=>{try{tg&&tg.HapticFeedback.impactOccurred(s||'light')}catch(e){}};
@@ -316,30 +311,59 @@ function bestPick(){
   const pick=qualified.length?qualified[0]:null;
   return {pick, top:L[0], hasQualified:!!pick};
 }
+function modelLean(){
+  const M=model();const S=M.S;
+  if(S.e==="p"){
+    const tot=M.muA+M.muB;
+    const ouD=st.ouSel;
+    const oO=eff(OU(M.m,ouD));
+    const sideTxt=M.muA>M.muB?st.tA:st.tB;
+    const diff=Math.abs(M.muA-M.muB).toFixed(2);
+    return `Model expects ${tot.toFixed(2)} total ${S.u} → leans ${oO>=0.5?"Over":"Under"} ${ouD} (${pc(oO)}). Handicap lean: ${sideTxt} by ${diff}. Enter the bookie's odds above to see if any price is actually beatable.`;
+  }
+  const tot=M.muA+M.muB, m=M.muA-M.muB;
+  return `Model total ${tot.toFixed(1)} ${S.u}; margin ${st.tA} ${m>=0?"+":""}${m.toFixed(1)}. Compare vs the book's line: if the book's total is ${Math.abs(tot-pf(st.gT))>=3?"3+ off — value candidate":"close to model, likely no edge"}. Enter odds to confirm.`;
+}
 function rBest(){
-  const b=bestPick();
-  if(!b){$("best").style.display="none";return}
+  const M=model();const L=legs(M);const bk=pf(st.bank);
   $("best").style.display="";
-  const bk=pf(st.bank);
-  if(b.hasQualified){
-    const l=b.pick;const stake=kQ(l.p,l.o)*bk;
+  if(!L.length){
+    $("best").innerHTML=`<div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--mu)">📐 Model Lean</div>
+      <div style="font-size:12px;color:var(--mu);margin-top:5px;line-height:1.55">${modelLean()}</div>`;
+    return;
+  }
+  const growth=L.filter(l=>GROW(l.k)&&l.e>=5);
+  const fun=L.filter(l=>!GROW(l.k)&&l.e>=5);
+  if(growth.length){
+    const l=growth[0];const stake=kQ(l.p,l.o)*bk;
     $("best").innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <span style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--gd)">✅ Best Option</span>
-        <span class="mono g" style="font-size:12px;font-weight:700">+${l.e.toFixed(1)}pp edge</span>
+        <span style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--gr)">✅ Bet This</span>
+        <span class="mono g" style="font-size:12px;font-weight:700">+${l.e.toFixed(1)}pp</span>
       </div>
-      <div style="font-size:17px;font-weight:700;margin-top:4px">${lbl(l.k)}</div>
-      <div class="mono" style="font-size:12px;color:var(--mu);margin-top:2px">true ${pc(l.p)} vs implied ${pc(1/l.o)} @ ${l.o.toFixed(2)} → 🛡 stake R${stake.toFixed(2)} (bank R${bk})</div>
-      <div style="font-size:11px;color:var(--fa);margin-top:6px;line-height:1.5"><b style="color:var(--mu)">Risk:</b> ${whyFail(l.k)}</div>`;
-  }else{
-    const l=b.top;
+      <div style="font-size:17px;font-weight:700;margin-top:4px">${lbl(l.k)} @ ${l.o.toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--mu);margin-top:4px;line-height:1.5">Your model says this hits <b class="mono" style="color:var(--gd)">${pc(l.p)}</b> of the time, but the price only assumes <b class="mono">${pc(1/l.o)}</b> — the bookie is underpricing it. Growth-bankroll leg: stake <b class="g mono">R${stake.toFixed(2)}</b> (¼-Kelly of R${bk}).</div>
+      <div style="font-size:11px;color:var(--fa);margin-top:6px;line-height:1.5"><b style="color:var(--mu)">How it loses:</b> ${whyFail(l.k)}</div>
+      ${growth.length>1?`<div style="font-size:10px;color:var(--fa);margin-top:5px">Also qualified: ${growth.slice(1,3).map(x=>lbl(x.k)+" +"+x.e.toFixed(1)).join(" · ")}</div>`:""}`;
+  }else if(fun.length){
+    const l=fun[0];
     $("best").innerHTML=`
-      <div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--mu)">➖ No Qualifying Bet</div>
-      <div style="font-size:13px;margin-top:5px">Closest: <b>${lbl(l.k)}</b> <span class="mono ${l.e>=0?'m':'r'}">${l.e>=0?"+":""}${l.e.toFixed(1)}pp</span> — under the 5pp growth threshold.</div>
-      <div style="font-size:11px;color:var(--fa);margin-top:4px">No leg clears the bar right now. Price more markets, or pass this fixture.</div>`;
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--gd)">🎪 Fun Pool Only</span>
+        <span class="mono g" style="font-size:12px;font-weight:700">+${l.e.toFixed(1)}pp</span>
+      </div>
+      <div style="font-size:16px;font-weight:700;margin-top:4px">${lbl(l.k)} @ ${l.o.toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--mu);margin-top:4px;line-height:1.5">Real value here (model ${pc(l.p)} vs implied ${pc(1/l.o)}) — but this market type (result/BTTS/team total) is <b>not allowed on your growth bankroll</b>. R5 entertainment pool only, small stake.</div>
+      <div style="font-size:11px;color:var(--gd);margin-top:6px;line-height:1.5">💡 Check the handicap equivalent: price the same side on AH/spread — if the edge shows there too, it becomes a growth-qualified bet.</div>
+      <div style="font-size:11px;color:var(--fa);margin-top:5px;line-height:1.5"><b style="color:var(--mu)">How it loses:</b> ${whyFail(l.k)}</div>`;
+  }else{
+    const l=L[0];
+    $("best").innerHTML=`
+      <div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--mu)">➖ Pass This Fixture</div>
+      <div style="font-size:13px;margin-top:5px;line-height:1.5">Best of what you priced: <b>${lbl(l.k)}</b> at <span class="mono ${l.e>=0?'m':'r'}">${l.e>=0?"+":""}${l.e.toFixed(1)}pp</span> — under your 5pp bar. The bookie's prices are fair-to-bad here.</div>
+      <div style="font-size:11px;color:var(--fa);margin-top:4px;line-height:1.5">Not betting IS the edge on fixtures like this. Price other markets if you want, otherwise move to the next game.</div>`;
   }
 }
-
 function rBd(){const M=model(),L=legs(M),bk=pf(st.bank);
   if(!L.length){$("bd").style.display="none";return}
   $("bd").style.display="";
@@ -363,21 +387,6 @@ $("copy").onclick=()=>{hap("medium");const t=summary();
   navigator.clipboard.writeText(t).then(()=>{$("copy").textContent="✅ Copied";setTimeout(()=>$("copy").textContent="📋 Copy CLV summary",1400)})
   .catch(()=>alert(t))};
 
-async function aiVerdict(){
-  if(!AI_URL){$("ai").style.display="";$("ai").innerHTML='<span class="fa2" style="font-size:11px">AI not configured — set AI_URL in index.html to your Worker URL.</span>';return}
-  const M=model();
-  if(!legs(M).length){$("ai").style.display="";$("ai").innerHTML='<span class="fa2" style="font-size:11px">Price at least one leg first — AI reviews your edges, it doesn\'t replace the model.</span>';return}
-  hap("medium");
-  $("ai").style.display="";
-  $("ai").innerHTML='<span class="m" style="font-size:12px">🧠 thinking…</span>';
-  try{
-    const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:summary()})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    $("ai").innerHTML='<div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--gd);margin-bottom:6px">🧠 Nemotron verdict</div><div style="font-size:12.5px;line-height:1.55;white-space:pre-wrap">'+d.text.replace(/</g,"&lt;")+'</div><div class="fa2" style="font-size:9px;margin-top:6px">LLM opinion on model output — the Poisson numbers are the source of truth, this is a second read.</div>';
-  }catch(e){$("ai").innerHTML='<span class="r" style="font-size:11px">AI error: '+e.message+'</span>'}
-}
-$("brain").onclick=aiVerdict;
 $("gear").onclick=()=>{hap();$("adv").classList.toggle("open")};
 $("reset").onclick=()=>{hap();fresh(st.sk);save();rAll()};
 
