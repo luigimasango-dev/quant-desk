@@ -74,12 +74,18 @@ input[type=range]{accent-color:var(--gd);padding:0}
 <main>
   <div class="card" id="in"></div>
   <div class="card" id="mk"></div>
+  <div class="card" id="best" style="display:none"></div>
   <div class="card board" id="bd" style="display:none"></div>
+  <div class="card" id="ai" style="display:none"></div>
   <p class="note" id="fn"></p>
 </main>
-<div class="bar"><button id="copy">📋 Copy CLV summary</button></div>
+<div class="bar" style="display:flex;gap:8px">
+  <button id="copy" style="flex:1">📋 CLV</button>
+  <button id="brain" style="flex:1;background:var(--panel);color:var(--tx);border:1px solid var(--bd)">🧠 AI verdict</button>
+</div>
 
 <script>
+const AI_URL=""; // paste your Cloudflare Worker URL here, e.g. https://quant-ai.yourname.workers.dev
 const tg=window.Telegram&&window.Telegram.WebApp;
 if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#0A0B0F');tg.setBackgroundColor('#0A0B0F')}catch(e){}}
 const hap=s=>{try{tg&&tg.HapticFeedback.impactOccurred(s||'light')}catch(e){}};
@@ -205,14 +211,14 @@ function rIn(){const S=SP[st.sk],M=model(),g=S.e==="g";
     <div class="sl"><div class="top"><span>Bankroll R</span></div>
       <input type="number" inputmode="decimal" id="bk" value="${st.bank}" style="font-size:13px;padding:6px"></div>
   </div>`;
-  $("tA").oninput=e=>{st.tA=e.target.value;save();rMk();rBd()};
-  $("tB").oninput=e=>{st.tB=e.target.value;save();rMk();rBd()};
-  ["aS","aC","bS","bC"].forEach(k=>$(k).oninput=e=>{st[k]=e.target.value;save();rTop();rMk();rBd()});
-  $("hR").oninput=e=>{st.hfa=parseFloat(e.target.value);save();rTop();rMk();rBd()};
-  if(S.dc)$("rR").oninput=e=>{st.rho=parseFloat(e.target.value);save();rTop();rMk();rBd()};
-  if(g){$("sTR").oninput=e=>{st.sdT=parseFloat(e.target.value);save();rTop();rMk();rBd()};
-       $("sSR").oninput=e=>{st.sdS=parseFloat(e.target.value);save();rTop();rMk();rBd()}}
-  $("bk").oninput=e=>{st.bank=e.target.value;save();rBd()};
+  $("tA").oninput=e=>{st.tA=e.target.value;save();rMk();rBd();rBest()};
+  $("tB").oninput=e=>{st.tB=e.target.value;save();rMk();rBd();rBest()};
+  ["aS","aC","bS","bC"].forEach(k=>$(k).oninput=e=>{st[k]=e.target.value;save();rTop();rMk();rBd();rBest()});
+  $("hR").oninput=e=>{st.hfa=parseFloat(e.target.value);save();rTop();rMk();rBd();rBest()};
+  if(S.dc)$("rR").oninput=e=>{st.rho=parseFloat(e.target.value);save();rTop();rMk();rBd();rBest()};
+  if(g){$("sTR").oninput=e=>{st.sdT=parseFloat(e.target.value);save();rTop();rMk();rBd();rBest()};
+       $("sSR").oninput=e=>{st.sdS=parseFloat(e.target.value);save();rTop();rMk();rBd();rBest()}}
+  $("bk").oninput=e=>{st.bank=e.target.value;save();rBd();rBest()};
   rTop()}
 
 function rTop(){const S=SP[st.sk],M=model(),g=S.e==="g";
@@ -258,13 +264,13 @@ function rMk(){const S=SP[st.sk],M=model();let h="";
     h+=sect("Moneyline")+row("gm|A",`${st.tA} ML`,M)+row("gm|B",`${st.tB} ML`,M);
   }
   $("mk").innerHTML=h;
-  $("mk").querySelectorAll(".side button").forEach(b=>b.onclick=()=>{hap();st.ahSide=b.dataset.s;save();rMk();rBd()});
-  const sel=(id,key)=>{const e=$(id);if(e)e.onchange=ev=>{st[key]=parseFloat(ev.target.value);save();rMk();rBd()}};
+  $("mk").querySelectorAll(".side button").forEach(b=>b.onclick=()=>{hap();st.ahSide=b.dataset.s;save();rMk();rBd();rBest()});
+  const sel=(id,key)=>{const e=$(id);if(e)e.onchange=ev=>{st[key]=parseFloat(ev.target.value);save();rMk();rBd();rBest()}};
   sel("ahS","ahSel");sel("ouS","ouSel");sel("ttS","ttSel");
-  [["gT","gT"],["gS","gS"],["gTt","gTt"]].forEach(([id,key])=>{const e=$(id);if(e)e.onchange=ev=>{st[key]=ev.target.value;save();rMk();rBd()}});
+  [["gT","gT"],["gS","gS"],["gTt","gTt"]].forEach(([id,key])=>{const e=$(id);if(e)e.onchange=ev=>{st[key]=ev.target.value;save();rMk();rBd();rBest()}});
   $("mk").querySelectorAll(".row").forEach(r=>{
     const key=r.dataset.key,inp=r.querySelector("input");
-    inp.oninput=()=>{st.odds[key]=inp.value;save();cell(r,key);rBd()};
+    inp.oninput=()=>{st.odds[key]=inp.value;save();cell(r,key);rBd();rBest()};
     cell(r,key)})}
 
 function cell(r,key){const M=model(),o=parseFloat(st.odds[key]),e=r.querySelector(".e");
@@ -277,6 +283,62 @@ function legs(M){const out=[];
   for(const[k,v]of Object.entries(st.odds)){const o=parseFloat(v);if(!o||o<=1)continue;
     out.push({k,o,p:prob(k,M),e:(prob(k,M)-1/o)*100})}
   return out.sort((a,b)=>b.e-a.e)}
+
+
+function whyFail(key){
+  const[k]=key.split("|");
+  const M={
+    ah:"Fails if the favorite fails to break down a packed defence / concedes an early away goal that flips game state.",
+    gs:"Fails if the favorite gets a cold shooting night or foul trouble limits a key starter's minutes.",
+    oO:"Fails if the game turns cagey / a red card or early lead kills the pace.",
+    oU:"Fails if either side opens up (an early goal forcing a chase, or a shootout starts).",
+    gO:"Fails if pace drops — foul-outs, blowout garbage time, or a defensive gameplan.",
+    gU:"Fails if the game runs hot — overtime, a shootout, or a fast-pace mismatch.",
+    bY:"Fails if either side sits deep and the game stays goalless at one end.",
+    bN:"Fails if a stray set-piece or individual error gifts the 'weaker' side a goal.",
+    tA:"Fails if their striker misfires or the opponent parks the bus.",
+    tB:"Fails if their striker misfires or the opponent parks the bus.",
+    gA:"Fails if their offense goes cold or the opponent's defense overperforms its average.",
+    gB:"Fails if their offense goes cold or the opponent's defense overperforms its average.",
+    h:"Fails on a set-piece concession, red card, or early opposition goal changing the gameplan.",
+    a:"Fails on a set-piece concession, red card, or early opposition goal changing the gameplan.",
+    d:"Fails if either side is significantly more clinical than modeled — draws are volatility-sensitive.",
+    mA:"Fails if positive game-script (early lead) tilts the other way.",
+    mB:"Fails if positive game-script (early lead) tilts the other way.",
+    gm:"Fails if positive game-script (early lead) tilts the other way.",
+  };
+  return M[k]||"Fails if actual performance deviates meaningfully from the season averages used.";
+}
+function bestPick(){
+  const M=model();const L=legs(M);
+  if(!L.length)return null;
+  const qualified=L.filter(l=>GROW(l.k)&&l.e>=5);
+  const pick=qualified.length?qualified[0]:null;
+  return {pick, top:L[0], hasQualified:!!pick};
+}
+function rBest(){
+  const b=bestPick();
+  if(!b){$("best").style.display="none";return}
+  $("best").style.display="";
+  const bk=pf(st.bank);
+  if(b.hasQualified){
+    const l=b.pick;const stake=kQ(l.p,l.o)*bk;
+    $("best").innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--gd)">✅ Best Option</span>
+        <span class="mono g" style="font-size:12px;font-weight:700">+${l.e.toFixed(1)}pp edge</span>
+      </div>
+      <div style="font-size:17px;font-weight:700;margin-top:4px">${lbl(l.k)}</div>
+      <div class="mono" style="font-size:12px;color:var(--mu);margin-top:2px">true ${pc(l.p)} vs implied ${pc(1/l.o)} @ ${l.o.toFixed(2)} → 🛡 stake R${stake.toFixed(2)} (bank R${bk})</div>
+      <div style="font-size:11px;color:var(--fa);margin-top:6px;line-height:1.5"><b style="color:var(--mu)">Risk:</b> ${whyFail(l.k)}</div>`;
+  }else{
+    const l=b.top;
+    $("best").innerHTML=`
+      <div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--mu)">➖ No Qualifying Bet</div>
+      <div style="font-size:13px;margin-top:5px">Closest: <b>${lbl(l.k)}</b> <span class="mono ${l.e>=0?'m':'r'}">${l.e>=0?"+":""}${l.e.toFixed(1)}pp</span> — under the 5pp growth threshold.</div>
+      <div style="font-size:11px;color:var(--fa);margin-top:4px">No leg clears the bar right now. Price more markets, or pass this fixture.</div>`;
+  }
+}
 
 function rBd(){const M=model(),L=legs(M),bk=pf(st.bank);
   if(!L.length){$("bd").style.display="none";return}
@@ -300,10 +362,26 @@ function summary(){const M=model(),S=M.S,g=S.e==="g";
 $("copy").onclick=()=>{hap("medium");const t=summary();
   navigator.clipboard.writeText(t).then(()=>{$("copy").textContent="✅ Copied";setTimeout(()=>$("copy").textContent="📋 Copy CLV summary",1400)})
   .catch(()=>alert(t))};
+
+async function aiVerdict(){
+  if(!AI_URL){$("ai").style.display="";$("ai").innerHTML='<span class="fa2" style="font-size:11px">AI not configured — set AI_URL in index.html to your Worker URL.</span>';return}
+  const M=model();
+  if(!legs(M).length){$("ai").style.display="";$("ai").innerHTML='<span class="fa2" style="font-size:11px">Price at least one leg first — AI reviews your edges, it doesn\'t replace the model.</span>';return}
+  hap("medium");
+  $("ai").style.display="";
+  $("ai").innerHTML='<span class="m" style="font-size:12px">🧠 thinking…</span>';
+  try{
+    const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:summary()})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    $("ai").innerHTML='<div style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--gd);margin-bottom:6px">🧠 Nemotron verdict</div><div style="font-size:12.5px;line-height:1.55;white-space:pre-wrap">'+d.text.replace(/</g,"&lt;")+'</div><div class="fa2" style="font-size:9px;margin-top:6px">LLM opinion on model output — the Poisson numbers are the source of truth, this is a second read.</div>';
+  }catch(e){$("ai").innerHTML='<span class="r" style="font-size:11px">AI error: '+e.message+'</span>'}
+}
+$("brain").onclick=aiVerdict;
 $("gear").onclick=()=>{hap();$("adv").classList.toggle("open")};
 $("reset").onclick=()=>{hap();fresh(st.sk);save();rAll()};
 
-function rAll(){rTabs();rIn();rMk();rBd();
+function rAll(){rTabs();rIn();rMk();rBd();rBest();
   $("fn").textContent=SP[st.sk].e==="p"
     ?"Independent Poisson. Odds optional — enter to see edge (≥+5 green = pursue). 🛡 ¼-Kelly stake. Auto-saves."
     :"Normal model (large-λ Poisson). σ = assumptions (⚙). Odds optional. 🛡 ¼-Kelly. Auto-saves."}
