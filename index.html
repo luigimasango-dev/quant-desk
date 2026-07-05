@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>ULC · Quant Desk</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0A0B0F;--panel:#13151C;--panel2:#0F1116;--border:#242733;--bsoft:#1B1E27;
+    --text:#E8EAF0;--muted:#7C8296;--faint:#4B4F5E;--gold:#C9A227;--green:#34D399;--red:#F87171;--blue:#60A5FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:90px}
+  .mono{font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace}
+  header{padding:14px 14px 10px;border-bottom:1px solid var(--bsoft)}
+  .brand{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold)}
+  h1{font-size:19px;margin-top:2px}
+  h1 span{color:var(--gold)}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 4px}
+  .tab{flex:none;font-size:11px;padding:6px 10px;border-radius:7px;border:1px solid var(--border);color:var(--muted);background:none;font-weight:600}
+  .tab.on{background:var(--gold);color:#0A0B0F;border-color:var(--gold)}
+  main{max-width:620px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label.f{display:flex;flex-direction:column;gap:3px}
+  label.f span{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  input,select{background:var(--panel2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:8px;font-size:15px;outline:none;width:100%}
+  input:focus{border-color:var(--gold)}
+  input.name{background:none;border:none;border-bottom:1px solid var(--bsoft);border-radius:0;font-weight:600;padding:4px 0}
+  input.name.a{color:var(--gold)} input.name.b{color:var(--blue);text-align:right}
+  .lams{display:flex;justify-content:space-around;margin-top:10px;padding-top:10px;border-top:1px solid var(--bsoft);text-align:center}
+  .lams .k{font-size:9px;text-transform:uppercase;color:var(--muted)}
+  .lams .v{font-size:17px;font-weight:600}
+  .slid{margin-top:10px}
+  .slid .top{display:flex;justify-content:space-between;font-size:10px;text-transform:uppercase;color:var(--muted)}
+  .slid .top b{color:var(--gold)}
+  input[type=range]{accent-color:var(--gold);padding:0}
+  .sect{display:flex;align-items:baseline;gap:7px;padding:10px 2px 6px}
+  .sect .n{font-size:10px;color:var(--gold)}
+  .sect .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .sect .tag{font-size:8px;border:1px solid var(--border);border-radius:4px;padding:2px 5px;color:var(--gold)}
+  .sect .line{flex:1;height:1px;background:var(--bsoft)}
+  .row{display:grid;grid-template-columns:1fr 52px 64px 48px 48px;gap:5px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--bsoft);font-size:13px}
+  .row .p{color:var(--gold);font-weight:600;font-size:12px;text-align:right}
+  .row input{padding:4px 5px;font-size:12px;text-align:right}
+  .row .e{font-size:11px;font-weight:600;text-align:right}
+  .row .vd{font-size:9px;font-weight:700;text-align:right;letter-spacing:.05em}
+  .ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 2px 8px}
+  .ctrl select,.ctrl input{width:auto}
+  .ctrl .side{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+  .ctrl .side button{border:none;background:none;color:var(--muted);font-size:11px;font-weight:600;padding:6px 10px}
+  .ctrl .side button.on{background:var(--gold);color:#0A0B0F}
+  .wpl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bsoft);border:1px solid var(--bsoft);border-radius:7px;overflow:hidden;margin:4px 0}
+  .wpl div{background:var(--panel2);text-align:center;padding:6px}
+  .wpl .k{font-size:8px;text-transform:uppercase;color:var(--muted)}
+  .wpl .v{font-size:13px;font-weight:600}
+  .meta{font-size:10px;color:var(--muted);padding:2px 2px 8px;line-height:1.6}
+  .heat{display:grid;gap:2px;margin-top:6px}
+  .heat div{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:8px;border-radius:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .chip{font-size:10px;padding:3px 8px;border-radius:5px;background:var(--panel2);border:1px solid var(--bsoft)}
+  .chip b{color:var(--gold)}
+  .board{border-color:rgba(201,162,39,.3)}
+  .bhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .bhead .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+  .bhead input{width:64px;padding:4px;font-size:12px;text-align:right}
+  .brow{display:grid;grid-template-columns:1fr 48px 52px 62px;gap:5px;padding:5px 0;border-bottom:1px solid var(--bsoft);font-size:12px;align-items:center}
+  .brow .o{color:var(--muted);text-align:right;font-size:11px}
+  .brow .st{text-align:right;font-weight:600;font-size:11px}
+  .note{font-size:9px;color:var(--faint);text-align:center;padding:4px 10px;line-height:1.5}
+  .btnbar{position:fixed;bottom:0;left:0;right:0;display:flex;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+  .btnbar button{flex:1;padding:12px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-weight:700;font-size:13px}
+  .btnbar .gold{background:var(--gold);color:#0A0B0F;border-color:var(--gold)}
+  .g{color:var(--green)} .r{color:var(--red)} .m{color:var(--muted)} .fa{color:var(--faint)}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="brand">ULC · Quant Desk</div>
+      <h1>Poisson Engine <span>Mini</span></h1>
+    </div>
+    <button id="resetBtn" class="tab">↺ reset</button>
+  </div>
+</header>
+<div class="tabs" id="tabs"></div>
+<main>
+  <div class="card" id="inputsCard"></div>
+  <div class="card" id="heatCard" style="display:none"></div>
+  <div class="card" id="marketsCard"></div>
+  <div class="card board" id="boardCard"></div>
+  <p class="note" id="footNote"></p>
+</main>
+<div class="btnbar">
+  <button id="copyBtn">📋 CLV summary</button>
+  <button id="sendBtn" class="gold" style="display:none">📤 Send to chat</button>
+</div>
+
+<script>
+// ============ Telegram SDK ============
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0A0B0F'); tg.setBackgroundColor('#0A0B0F'); }
+const haptic = (s) => { try { tg && tg.HapticFeedback.impactOccurred(s||'light'); } catch(e){} };
+
+// ============ configs ============
+const SPORTS = {
+  fb:{name:"⚽ Football",engine:"p",unit:"goals",grid:13,heat:7,dc:true,btts:true,threeWay:true,
+      d:[1.6,1.1,1.3,1.4],step:.1,ahL:"Asian Handicap",ah:qr(-3,3,.25),ahD:-0.5,
+      ou:[0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,4,4.5],ouD:2.5,tt:[0.5,1.5,2.5],ttD:1.5,hMax:.3},
+  hk:{name:"🏒 Hockey",engine:"p",unit:"goals",grid:16,heat:8,dc:false,btts:true,threeWay:true,
+      d:[3.1,2.7,2.9,3.0],step:.1,ahL:"Puck Line",ah:qr(-3,3,.5),ahD:-1.5,
+      ou:[4.5,5,5.5,6,6.5,7,7.5],ouD:5.5,tt:[1.5,2.5,3.5],ttD:2.5,hMax:.2},
+  bs:{name:"⚾ Baseball",engine:"p",unit:"runs",grid:18,heat:8,dc:false,btts:false,threeWay:false,
+      d:[4.6,4.1,4.3,4.5],step:.1,ahL:"Run Line",ah:qr(-3,3,.5),ahD:-1.5,
+      ou:[6.5,7,7.5,8,8.5,9,9.5,10.5],ouD:8.5,tt:[2.5,3.5,4.5],ttD:4.5,hMax:.15},
+  bb:{name:"🏀 Basketball",engine:"g",unit:"pts",d:[112,108,106,111],step:.5,ahL:"Spread",sdT:13.5,sdS:12,halves:true,hMax:4},
+  hb:{name:"🤾 Handball",engine:"g",unit:"goals",d:[29,27,28,30],step:.5,ahL:"Handicap",sdT:7.5,sdS:6.5,halves:true,hMax:3},
+};
+function qr(a,b,s){const o=[];for(let x=a;x<=b+1e-9;x+=s)o.push(Math.round(x*4)/4);return o}
+
+// ============ math ============
+function pmf(k,l){if(l<=0)return k===0?1:0;let lp=-l+k*Math.log(l);for(let i=2;i<=k;i++)lp-=Math.log(i);return Math.exp(lp)}
+function dcTau(i,j,lA,lB,r){if(i===0&&j===0)return 1-lA*lB*r;if(i===0&&j===1)return 1+lA*r;if(i===1&&j===0)return 1+lB*r;if(i===1&&j===1)return 1-r;return 1}
+function nCDF(x){const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p}
+function buildM(lA,lB,G,rho){const m=[];let tot=0;for(let i=0;i<G;i++){const r=[];for(let j=0;j<G;j++){let p=pmf(i,lA)*pmf(j,lB);if(rho)p*=dcTau(i,j,lA,lB,rho);p=Math.max(0,p);r.push(p);tot+=p}m.push(r)}for(let i=0;i<G;i++)for(let j=0;j<G;j++)m[i][j]/=tot;return m}
+function ahHF(m,h,side){let w=0,p=0,l=0;const G=m.length;for(let i=0;i<G;i++)for(let j=0;j<G;j++){const d=side==="A"?i-j:j-i,r=d+h,pr=m[i][j];if(Math.abs(r)<1e-9)p+=pr;else if(r>0)w+=pr;else l+=pr}return{w,p,l}}
+function ahLn(m,h,side){const q=Math.abs((h*4)%2)===1;if(!q)return ahHF(m,h,side);const a=ahHF(m,h-.25,side),b=ahHF(m,h+.25,side);return{w:(a.w+b.w)/2,p:(a.p+b.p)/2,l:(a.l+b.l)/2}}
+function ouLn(m,L){const G=m.length;const half=(x)=>{let ov=0,pu=0;for(let i=0;i<G;i++)for(let j=0;j<G;j++){const t=i+j;if(t>x)ov+=m[i][j];else if(t===x)pu+=m[i][j]}return{w:ov,p:pu,l:1-ov-pu}};const q=Math.abs((L*4)%2)===1;if(!q)return half(L);const a=half(L-.25),b=half(L+.25);return{w:(a.w+b.w)/2,p:(a.p+b.p)/2,l:(a.l+b.l)/2}}
+const eff=o=>o.w+o.l>0?o.w/(o.w+o.l):0;
+function tOver(l,L){let s=0;for(let k=0;k<=Math.floor(L);k++)s+=pmf(k,l);return 1-s}
+function kQ(p,o){const b=o-1;return b<=0?0:Math.max(0,((b*p-(1-p))/b)*.25)}
+const pc=x=>(x*100).toFixed(1)+"%";
+const pf=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+
+// ============ state ============
+let st = null;
+function initState(sk){
+  const S=SPORTS[sk];
+  st={sk,teamA:"Team A",teamB:"Team B",
+      aS:String(S.d[0]),aC:String(S.d[1]),bS:String(S.d[2]),bC:String(S.d[3]),
+      hfa:0,rho:0,sdT:S.sdT||0,sdS:S.sdS||0,bank:"100",
+      ahSide:"A",ahSel:S.ahD!==undefined?S.ahD:-2.5,ouSel:S.ouD,ttSel:S.ttD,
+      gTot:"",gTt:"",gH1:"",gSp:"-2.5",
+      odds:{}};
+  if(S.engine==="g"){
+    const tot=(S.d[0]+S.d[3])/2+(S.d[2]+S.d[1])/2;
+    st.gTot=String(Math.round(tot)+0.5);
+    st.gTt=String(Math.round(tot/2)+0.5);
+    st.gH1=String(Math.round(tot/2)+0.5);
+  }
+}
+
+// ============ model ============
+function model(){
+  const S=SPORTS[st.sk];
+  const aS=pf(st.aS),aC=pf(st.aC),bS=pf(st.bS),bC=pf(st.bC);
+  const muA=S.engine==="p"?((aS+bC)/2)*(1+st.hfa):(aS+bC)/2+st.hfa;
+  const muB=(bS+aC)/2;
+  const out={S,muA,muB};
+  if(S.engine==="p"){
+    out.m=buildM(muA,muB,S.grid,S.dc?st.rho:0);
+    let h=0,d=0,a=0,btts=0;const sl=[];
+    for(let i=0;i<S.grid;i++)for(let j=0;j<S.grid;j++){const p=out.m[i][j];
+      if(i>j)h+=p;else if(i===j)d+=p;else a+=p;
+      if(i>=1&&j>=1)btts+=p;
+      if(i<S.heat&&j<S.heat)sl.push([i,j,p]);}
+    sl.sort((x,y)=>y[2]-x[2]);
+    out.home=h;out.draw=d;out.away=a;out.btts=btts;out.sl=sl;
+  }
+  return out;
+}
+
+// probability lookup per market key (used by rows + board)
+function probOf(key,M){
+  const S=M.S;
+  const [k,...r]=key.split("|");
+  if(k==="ah"){const o=ahLn(M.m,parseFloat(r[0]),r[1]);return eff(o)}
+  if(k==="ouO"){return eff(ouLn(M.m,parseFloat(r[0])))}
+  if(k==="ouU"){const o=ouLn(M.m,parseFloat(r[0]));return eff({w:o.l,p:o.p,l:o.w})}
+  if(k==="bttsY")return M.btts; if(k==="bttsN")return 1-M.btts;
+  if(k==="ttA")return tOver(M.muA,parseFloat(r[0])); if(k==="ttB")return tOver(M.muB,parseFloat(r[0]));
+  if(k==="h")return M.home; if(k==="d")return M.draw; if(k==="a")return M.away;
+  if(k==="dc1x")return M.home+M.draw; if(k==="dc12")return M.home+M.away; if(k==="dcx2")return M.draw+M.away;
+  if(k==="mlA")return M.home/(M.home+M.away); if(k==="mlB")return M.away/(M.home+M.away);
+  // gaussian
+  const muT=M.muA+M.muB, muM=M.muA-M.muB;
+  if(k==="gml"){const w=1-nCDF((0-muM)/st.sdS);return r[0]==="A"?w:1-w}
+  if(k==="gsp"){const mm=r[1]==="A"?muM:-muM;return 1-nCDF((0-(mm+parseFloat(r[0])))/st.sdS)}
+  if(k==="gtO")return 1-nCDF((parseFloat(r[0])-muT)/st.sdT);
+  if(k==="gtU")return nCDF((parseFloat(r[0])-muT)/st.sdT);
+  if(k==="gh1O")return 1-nCDF((parseFloat(r[0])-muT*.5)/(st.sdT/Math.SQRT2));
+  if(k==="gh1U")return nCDF((parseFloat(r[0])-muT*.5)/(st.sdT/Math.SQRT2));
+  if(k==="gttA")return 1-nCDF((parseFloat(r[0])-M.muA)/(st.sdT/Math.SQRT2));
+  if(k==="gttB")return 1-nCDF((parseFloat(r[0])-M.muB)/(st.sdT/Math.SQRT2));
+  return 0;
+}
+const GROWTH=k=>/^(ah|ouO|ouU|gsp|gtO|gtU|gh1O|gh1U)/.test(k);
+
+// ============ render ============
+const $=id=>document.getElementById(id);
+function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild}
+
+function renderTabs(){
+  $("tabs").innerHTML=Object.entries(SPORTS).map(([k,s])=>
+    `<button class="tab ${st.sk===k?'on':''}" data-sk="${k}">${s.name}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{haptic();initState(b.dataset.sk);renderAll()});
+}
+
+function renderInputs(){
+  const S=SPORTS[st.sk],M=model();
+  const g=S.engine==="g";
+  $("inputsCard").innerHTML=`
+    <div class="grid2">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input class="name a" id="tA" value="${st.teamA}">
+        <label class="f"><span>Scored avg (${S.unit})</span><input type="number" inputmode="decimal" step="${S.step}" id="aS" value="${st.aS}"></label>
+        <label class="f"><span>Conceded avg</span><input type="number" inputmode="decimal" step="${S.step}" id="aC" value="${st.aC}"></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input class="name b" id="tB" value="${st.teamB}">
+        <label class="f"><span>Scored avg (${S.unit})</span><input type="number" inputmode="decimal" step="${S.step}" id="bS" value="${st.bS}"></label>
+        <label class="f"><span>Conceded avg</span><input type="number" inputmode="decimal" step="${S.step}" id="bC" value="${st.bC}"></label>
+      </div>
+    </div>
+    <div class="slid"><div class="top"><span>Home adv ${S.engine==="p"?"×":"+"+S.unit} (assumption)</span><b id="hfaV">${st.hfa===0?"off":(S.engine==="p"?"×"+(1+st.hfa).toFixed(2):"+"+st.hfa.toFixed(1))}</b></div>
+      <input type="range" id="hfa" min="0" max="${S.hMax}" step="${S.engine==="p"?0.01:0.5}" value="${st.hfa}"></div>
+    ${S.dc?`<div class="slid"><div class="top"><span>Dixon-Coles ρ</span><b id="rhoV">${st.rho===0?"off":st.rho.toFixed(2)}</b></div>
+      <input type="range" id="rho" min="-0.2" max="0" step="0.01" value="${st.rho}"></div>`:""}
+    ${g?`<div class="slid"><div class="top"><span>σ total</span><b id="sdTV">${st.sdT}</b></div>
+      <input type="range" id="sdT" min="4" max="22" step="0.5" value="${st.sdT}"></div>
+      <div class="slid"><div class="top"><span>σ spread</span><b id="sdSV">${st.sdS}</b></div>
+      <input type="range" id="sdS" min="3" max="18" step="0.5" value="${st.sdS}"></div>`:""}
+    <div class="lams">
+      <div><div class="k">μ ${st.teamA}</div><div class="v mono" style="color:var(--gold)" id="lA">${M.muA.toFixed(g?1:2)}</div></div>
+      <div><div class="k">Total</div><div class="v mono" id="lT">${(M.muA+M.muB).toFixed(g?1:2)}</div></div>
+      <div><div class="k">μ ${st.teamB}</div><div class="v mono" style="color:var(--blue)" id="lB">${M.muB.toFixed(g?1:2)}</div></div>
+    </div>`;
+  $("tA").oninput=e=>{st.teamA=e.target.value;renderMarkets();renderBoard()};
+  $("tB").oninput=e=>{st.teamB=e.target.value;renderMarkets();renderBoard()};
+  ["aS","aC","bS","bC"].forEach(k=>{$(k).oninput=e=>{st[k]=e.target.value;refreshModel()}});
+  $("hfa").oninput=e=>{st.hfa=parseFloat(e.target.value);$("hfaV").textContent=st.hfa===0?"off":(S.engine==="p"?"×"+(1+st.hfa).toFixed(2):"+"+st.hfa.toFixed(1));refreshModel()};
+  if(S.dc)$("rho").oninput=e=>{st.rho=parseFloat(e.target.value);$("rhoV").textContent=st.rho===0?"off":st.rho.toFixed(2);refreshModel()};
+  if(g){$("sdT").oninput=e=>{st.sdT=parseFloat(e.target.value);$("sdTV").textContent=st.sdT;refreshModel()};
+        $("sdS").oninput=e=>{st.sdS=parseFloat(e.target.value);$("sdSV").textContent=st.sdS;refreshModel()}}
+}
+
+function refreshModel(){
+  const S=SPORTS[st.sk],M=model(),g=S.engine==="g";
+  $("lA").textContent=M.muA.toFixed(g?1:2);
+  $("lB").textContent=M.muB.toFixed(g?1:2);
+  $("lT").textContent=(M.muA+M.muB).toFixed(g?1:2);
+  renderHeat(M);renderMarkets(M);renderBoard(M);
+}
+
+function renderHeat(M){
+  M=M||model();const S=M.S;
+  if(S.engine!=="p"){$("heatCard").style.display="none";return}
+  $("heatCard").style.display="";
+  let max=0,mi=0,mj=0;
+  for(let i=0;i<S.heat;i++)for(let j=0;j<S.heat;j++)if(M.m[i][j]>max){max=M.m[i][j];mi=i;mj=j}
+  let cells="";
+  for(let i=0;i<S.heat;i++)for(let j=0;j<S.heat;j++){
+    const p=M.m[i][j],a=Math.min(1,p/max);
+    cells+=`<div class="mono" style="background:rgba(201,162,39,${(0.07+a*0.78).toFixed(2)});color:${a>0.4?'#0A0B0F':'var(--muted)'};${i===mi&&j===mj?'outline:1px solid var(--gold)':''}">${i}-${j}</div>`;
+  }
+  $("heatCard").innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:11px">
+      <span style="text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600">Scorelines</span>
+      <span class="mono" style="color:var(--gold)">peak ${mi}-${mj} · ${pc(max)}</span></div>
+    <div class="heat" style="grid-template-columns:repeat(${S.heat},1fr)">${cells}</div>
+    <div class="chips">${M.sl.slice(0,5).map(s=>`<span class="chip mono">${s[0]}-${s[1]} <b>${pc(s[2])}</b></span>`).join("")}</div>`;
+}
+
+function rowHTML(key,label,M,note){
+  const p=probOf(key,M);
+  return `<div class="row" data-key="${key}">
+    <span>${label}${note?` <span class="fa" style="font-size:9px">${note}</span>`:""}</span>
+    <span class="p mono">${pc(p)}</span>
+    <input type="number" inputmode="decimal" step="0.01" placeholder="—" value="${st.odds[key]||""}">
+    <span class="e mono"></span><span class="vd mono"></span></div>`;
+}
+function sectHTML(n,t,tag){return `<div class="sect"><span class="n mono">${n}</span><span class="t">${t}</span>${tag?`<span class="tag mono">${tag}</span>`:""}<div class="line"></div></div>`}
+
+function renderMarkets(M){
+  M=M||model();const S=M.S;const c=$("marketsCard");
+  let h="";
+  if(S.engine==="p"){
+    const ahKey=`ah|${st.ahSel}|${st.ahSide}`;
+    const o=ahLn(M.m,st.ahSel,st.ahSide);
+    const other=eff(ahLn(M.m,-st.ahSel,st.ahSide==="A"?"B":"A"));
+    h+=sectHTML("01",S.ahL,"PRIMARY");
+    h+=`<div class="ctrl">
+      <div class="side"><button data-s="A" class="${st.ahSide==="A"?"on":""}">${st.teamA}</button><button data-s="B" class="${st.ahSide==="B"?"on":""}">${st.teamB}</button></div>
+      <select id="ahSel">${S.ah.map(x=>`<option ${x===st.ahSel?"selected":""} value="${x}">${x>0?"+":""}${x}</option>`).join("")}</select></div>
+    <div class="wpl"><div><div class="k">Win</div><div class="v g mono">${pc(o.w)}</div></div>
+      <div><div class="k">Push</div><div class="v m mono">${pc(o.p)}</div></div>
+      <div><div class="k">Lose</div><div class="v r mono">${pc(o.l)}</div></div></div>`;
+    h+=rowHTML(ahKey,`${st.ahSide==="A"?st.teamA:st.teamB} ${st.ahSel>0?"+":""}${st.ahSel}`,M);
+    h+=`<div class="meta mono">other side (${st.ahSide==="A"?st.teamB:st.teamA} ${-st.ahSel>0?"+":""}${-st.ahSel}): ${pc(other)}</div>`;
+
+    const ouP=ouLn(M.m,st.ouSel);
+    h+=sectHTML("02",`Total ${S.unit} O/U`,"PRIMARY");
+    h+=`<div class="ctrl"><select id="ouSel">${S.ou.map(x=>`<option ${x===st.ouSel?"selected":""} value="${x}">line ${x}</option>`).join("")}</select>${ouP.p>0.001?`<span class="fa mono" style="font-size:10px">push ${pc(ouP.p)}</span>`:""}</div>`;
+    h+=rowHTML(`ouO|${st.ouSel}`,`Over ${st.ouSel}`,M);
+    h+=rowHTML(`ouU|${st.ouSel}`,`Under ${st.ouSel}`,M,st.sk==="fb"?"⚠":"");
+    if(S.btts){h+=sectHTML("03","BTTS");h+=rowHTML("bttsY","BTTS Yes",M)+rowHTML("bttsN","BTTS No",M)}
+    h+=sectHTML("04","Team Totals");
+    h+=`<div class="ctrl"><select id="ttSel">${S.tt.map(x=>`<option ${x===st.ttSel?"selected":""} value="${x}">Over ${x}</option>`).join("")}</select></div>`;
+    h+=rowHTML(`ttA|${st.ttSel}`,`${st.teamA} O ${st.ttSel}`,M)+rowHTML(`ttB|${st.ttSel}`,`${st.teamB} O ${st.ttSel}`,M);
+    if(S.threeWay){
+      h+=sectHTML("05","1X2 / DC","HEDGE");
+      h+=rowHTML("h",`${st.teamA} Win`,M)+rowHTML("d","Draw",M)+rowHTML("a",`${st.teamB} Win`,M);
+      h+=rowHTML("dc1x","DC 1X",M)+rowHTML("dc12","DC 12",M)+rowHTML("dcx2","DC X2",M);
+    }else{
+      h+=sectHTML("05","Moneyline","no-tie adj.");
+      h+=rowHTML("mlA",`${st.teamA} ML`,M)+rowHTML("mlB",`${st.teamB} ML`,M);
+    }
+  }else{
+    const sp=pf(st.gSp);
+    h+=sectHTML("01",`Total ${S.unit} O/U`,"PRIMARY");
+    h+=`<div class="ctrl"><span class="fa" style="font-size:10px">LINE</span><input id="gTot" type="number" inputmode="decimal" step="0.5" style="width:84px" value="${st.gTot}"></div>`;
+    h+=rowHTML(`gtO|${pf(st.gTot)}`,`Over ${st.gTot}`,M)+rowHTML(`gtU|${pf(st.gTot)}`,`Under ${st.gTot}`,M);
+    h+=sectHTML("02",S.ahL,"PRIMARY");
+    h+=`<div class="ctrl">
+      <div class="side"><button data-s="A" class="${st.ahSide==="A"?"on":""}">${st.teamA}</button><button data-s="B" class="${st.ahSide==="B"?"on":""}">${st.teamB}</button></div>
+      <input id="gSp" type="number" inputmode="decimal" step="0.5" style="width:76px" value="${st.gSp}"></div>`;
+    h+=rowHTML(`gsp|${sp}|${st.ahSide}`,`${st.ahSide==="A"?st.teamA:st.teamB} ${sp>0?"+":""}${sp}`,M);
+    h+=`<div class="meta mono">model margin: ${st.teamA} ${(M.muA-M.muB)>=0?"+":""}${(M.muA-M.muB).toFixed(1)} · other side: ${pc(probOf(`gsp|${-sp}|${st.ahSide==="A"?"B":"A"}`,M))}</div>`;
+    h+=sectHTML("03","1st Half Total","0.5× approx");
+    h+=`<div class="ctrl"><span class="fa" style="font-size:10px">LINE</span><input id="gH1" type="number" inputmode="decimal" step="0.5" style="width:84px" value="${st.gH1}"><span class="fa mono" style="font-size:9px">1H μ ≈ ${((M.muA+M.muB)*.5).toFixed(1)}</span></div>`;
+    h+=rowHTML(`gh1O|${pf(st.gH1)}`,`1H Over ${st.gH1}`,M)+rowHTML(`gh1U|${pf(st.gH1)}`,`1H Under ${st.gH1}`,M);
+    h+=sectHTML("04","Team Totals");
+    h+=`<div class="ctrl"><span class="fa" style="font-size:10px">LINE</span><input id="gTt" type="number" inputmode="decimal" step="0.5" style="width:84px" value="${st.gTt}"></div>`;
+    h+=rowHTML(`gttA|${pf(st.gTt)}`,`${st.teamA} O ${st.gTt}`,M)+rowHTML(`gttB|${pf(st.gTt)}`,`${st.teamB} O ${st.gTt}`,M);
+    h+=sectHTML("05","Moneyline","HEDGE");
+    h+=rowHTML("gml|A",`${st.teamA} ML`,M)+rowHTML("gml|B",`${st.teamB} ML`,M);
+  }
+  c.innerHTML=h;
+
+  c.querySelectorAll(".side button").forEach(b=>b.onclick=()=>{haptic();st.ahSide=b.dataset.s;renderMarkets();renderBoard()});
+  const bind=(id,key,rerender)=>{const e2=$(id);if(e2)e2.oninput=ev=>{st[key]=rerender==="f"?parseFloat(ev.target.value):ev.target.value;renderMarkets();renderBoard()}};
+  bind("ahSel","ahSel","f");bind("ouSel","ouSel","f");bind("ttSel","ttSel","f");
+  ["gTot","gSp","gH1","gTt"].forEach(id=>{const e2=$(id);if(e2)e2.onchange=ev=>{st[id==="gSp"?"gSp":id==="gTot"?"gTot":id==="gH1"?"gH1":"gTt"]=ev.target.value;renderMarkets();renderBoard()}});
+
+  // odds inputs: update in place, no rerender (keeps focus)
+  c.querySelectorAll(".row").forEach(r=>{
+    const key=r.dataset.key, inp=r.querySelector("input");
+    const upd=()=>{
+      st.odds[key]=inp.value;
+      updateRowCells(r,key);
+      renderBoard();
+    };
+    inp.oninput=upd;
+    updateRowCells(r,key);
+  });
+}
+
+function updateRowCells(r,key){
+  const M=model();
+  const o=parseFloat(st.odds[key]);
+  const eC=r.querySelector(".e"),vC=r.querySelector(".vd");
+  if(!o||o<=1){eC.textContent="—";eC.className="e mono fa";vC.textContent="";return}
+  const p=probOf(key,M);
+  const edge=(p-1/o)*100;
+  eC.textContent=(edge>=0?"+":"")+edge.toFixed(1);
+  eC.className="e mono "+(edge>=5?"g":edge<=-5?"r":"m");
+  vC.textContent=edge>=5?"PURSUE":edge<=-5?"FADE":"THIN";
+  vC.className="vd mono "+(edge>=5?"g":edge<=-5?"r":"m");
+}
+
+function pricedLegs(M){
+  const legs=[];
+  for(const[key,v]of Object.entries(st.odds)){
+    const o=parseFloat(v);if(!o||o<=1)continue;
+    // only keep keys valid for current sport view
+    const p=probOf(key,M);if(p<=0&&p!==0)continue;
+    legs.push({key,o,p,edge:(p-1/o)*100});
+  }
+  return legs.sort((a,b)=>b.edge-a.edge);
+}
+function legLabel(key){
+  const[k,...r]=key.split("|");
+  const A=st.teamA,B=st.teamB;
+  const map={bttsY:"BTTS Yes",bttsN:"BTTS No",h:A+" Win",d:"Draw",a:B+" Win",dc1x:"DC 1X",dc12:"DC 12",dcx2:"DC X2",mlA:A+" ML",mlB:B+" ML"};
+  if(map[k])return map[k];
+  if(k==="ah")return`AH ${r[1]==="A"?A:B} ${r[0]>0?"+":""}${r[0]}`;
+  if(k==="ouO")return`Over ${r[0]}`; if(k==="ouU")return`Under ${r[0]}`;
+  if(k==="ttA")return`${A} O ${r[0]}`; if(k==="ttB")return`${B} O ${r[0]}`;
+  if(k==="gml")return`${r[0]==="A"?A:B} ML`;
+  if(k==="gsp")return`Sp ${r[1]==="A"?A:B} ${r[0]>0?"+":""}${r[0]}`;
+  if(k==="gtO")return`Over ${r[0]}`; if(k==="gtU")return`Under ${r[0]}`;
+  if(k==="gh1O")return`1H O ${r[0]}`; if(k==="gh1U")return`1H U ${r[0]}`;
+  if(k==="gttA")return`${A} O ${r[0]}`; if(k==="gttB")return`${B} O ${r[0]}`;
+  return key;
+}
+
+function renderBoard(M){
+  M=M||model();
+  const bank=pf(st.bank);
+  const legs=pricedLegs(M);
+  let rows;
+  if(!legs.length)rows=`<p class="meta">Price any market above — legs land here ranked by edge. 🛡 = growth-qualified (handicap/totals ≥5pp) with ¼-Kelly stake.</p>`;
+  else rows=legs.map(l=>{
+    const q=GROWTH(l.key)&&l.edge>=5;
+    const stake=q?kQ(l.p,l.o)*bank:0;
+    return`<div class="brow"><span>${q?"🛡 ":""}${legLabel(l.key)}</span>
+      <span class="o mono">@${l.o.toFixed(2)}</span>
+      <span class="e mono ${l.edge>=5?"g":l.edge<=-5?"r":"m"}" style="text-align:right">${l.edge>=0?"+":""}${l.edge.toFixed(1)}</span>
+      <span class="st mono ${q?"g":"fa"}">${q?"R"+stake.toFixed(2):l.edge>=5?"fun":"—"}</span></div>`;
+  }).join("")+`<p class="meta" style="padding-top:6px">🛡 ¼-Kelly · singles/doubles · hard stop R${(bank*.7).toFixed(0)}</p>`;
+  $("boardCard").innerHTML=`<div class="bhead"><span class="t">⚡ Edge Board</span>
+    <span style="display:flex;gap:4px;align-items:center"><span class="fa" style="font-size:9px">BANK R</span><input id="bank" type="number" inputmode="decimal" value="${st.bank}"></span></div>${rows}`;
+  $("bank").oninput=e=>{st.bank=e.target.value;renderBoard()};
+  $("footNote").textContent=M.S.engine==="p"
+    ?`Independent Poisson${M.S.dc?" + optional Dixon-Coles":""}. HFA is an assumption — flag it. Small samples: ±8–10pt error bars. Log to CLV vs Pinnacle close.`
+    :`Normal model (large-λ Poisson approx). σ values are league-level assumptions — tune and flag. 1H = 0.5× approx. Log to CLV vs Pinnacle close.`;
+}
+
+// ============ CLV summary ============
+function summary(){
+  const M=model(),S=M.S,g=S.engine==="g";
+  const L=[`${st.teamA} vs ${st.teamB} — ${S.name}`,
+    `μA ${M.muA.toFixed(g?1:2)} | μB ${M.muB.toFixed(g?1:2)} | Tot ${(M.muA+M.muB).toFixed(g?1:2)} ${S.unit}`];
+  if(st.hfa)L.push(`⚠ HFA ${g?"+"+st.hfa:"×"+(1+st.hfa).toFixed(2)} (assumption)`);
+  if(st.rho)L.push(`DC ρ=${st.rho}`);
+  if(!g)L.push(`Top: ${M.sl.slice(0,3).map(s=>`${s[0]}-${s[1]} ${pc(s[2])}`).join(", ")}`);
+  pricedLegs(M).forEach(l=>{
+    L.push(`${legLabel(l.key)} | true ${pc(l.p)} | @${l.o.toFixed(2)} | edge ${l.edge>=0?"+":""}${l.edge.toFixed(1)}pp | close: ____`);
+  });
+  return L.join("\n");
+}
+$("copyBtn").onclick=()=>{
+  haptic("medium");
+  const t=summary();
+  navigator.clipboard.writeText(t).then(()=>{$("copyBtn").textContent="✅ Copied";setTimeout(()=>$("copyBtn").textContent="📋 CLV summary",1400)})
+    .catch(()=>{if(tg)tg.showPopup?tg.showPopup({title:"CLV Summary",message:t.slice(0,250)}):alert(t)});
+};
+// sendData only works when launched via keyboard button — show button only then
+if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.query_id===undefined&&tg.initData){
+  $("sendBtn").style.display="";
+  $("sendBtn").onclick=()=>{haptic("medium");try{tg.sendData(summary().slice(0,4000))}catch(e){alert("Open via the bot keyboard button to send to chat.")}};
+}
+$("resetBtn").onclick=()=>{haptic();initState(st.sk);renderAll()};
+
+function renderAll(){renderTabs();renderInputs();const M=model();renderHeat(M);renderMarkets(M);renderBoard(M)}
+initState("fb");renderAll();
+</script>
+</body>
+</html>
